@@ -128,7 +128,7 @@ namespace KeepCorrect.Translator.WPF
             //TODO: if (it is not text) return;
             if (ItIsText(text))
             {
-                ShowTranslateOfText(await GetTranslate(text));
+                ShowTranslateOfText(text, await GetTranslate(text));
             }
             else
             {
@@ -173,16 +173,67 @@ namespace KeepCorrect.Translator.WPF
             return text.Trim().Any(ch => ch == ' ');
         }
         
-        private void ShowTranslateOfText(string text)
+        private void ShowTranslateOfText(string text, string translate)
         {
-            TextBlock myTextBlock = new TextBlock();
-            myTextBlock.FontSize = 18;
-            myTextBlock.FontWeight = FontWeights.Bold;
-            myTextBlock.FontStyle = FontStyles.Italic;
-            myTextBlock.Text = text;
-            myGrid.Children.Add(myTextBlock);
+            var stackPanel = new StackPanel()
+            {
+                Orientation = Orientation.Vertical
+            };
+            
+            
+            var textBox = new TextBox
+            {
+                Padding = new Thickness(10, 10, 10, 10),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                TextWrapping = TextWrapping.Wrap,
+                IsReadOnly = true,
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                FontStyle = FontStyles.Normal,
+                Text = text
+            };
+            textBox.MouseMove += TextBox_MouseMove;
+            stackPanel.Children.Add(textBox);
+            
+            var translateBox = new TextBox
+            {
+                Padding = new Thickness(10, 10, 10, 10),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                TextWrapping = TextWrapping.Wrap,
+                IsReadOnly = true,
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                FontStyle = FontStyles.Normal,
+                Text = translate
+            };
+            translateBox.MouseMove += TextBox_MouseMove;
+            stackPanel.Children.Add(translateBox);
+            
+            myGrid.Children.Add(stackPanel);
         }
-        
+
+        private void TextBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            Point mousePoint = Mouse.GetPosition(textBox);
+            int charPosition = textBox.GetCharacterIndexFromPoint(mousePoint, true);
+            if (charPosition > 0)
+            {
+                textBox.Focus();
+                int index = 0;
+                int i = 0;
+                string[] strings = textBox.Text.Split(' ');
+                while (index + strings[i].Length < charPosition && i < strings.Length)
+                {
+                    index += strings[i++].Length + 1;
+                }
+
+                textBox.Select(index, strings[i].Length);
+            }
+        }
+
         public static void SendCtrlC(IntPtr hWnd)
         {
             uint KEYEVENTF_KEYUP = 2;
