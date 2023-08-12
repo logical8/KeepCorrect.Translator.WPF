@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace KeepCorrect.Translator.WPF
 {
@@ -13,5 +7,22 @@ namespace KeepCorrect.Translator.WPF
     /// </summary>
     public partial class App : Application
     {
+        private void App_Startup(object sender, StartupEventArgs e)
+        {
+            // Process command line args
+            /*var isAutoStart = false;
+            for (int i = 0; i != e.Args.Length; ++i)
+            {
+                if (e.Args[i] == "/AutoStart")
+                {
+                    isAutoStart = true;
+                }
+            }*/
+
+            // Create main application window, starting minimized if specified
+            MainWindow mainWindow = new MainWindow();
+            //mainWindow.WindowState = WindowState.Minimized;
+            mainWindow.OnAutoStart();
+        }
     }
 }

@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Flurl;
 using Flurl.Http;
+using KeepCorrect.Translator.WPF.AppSettings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -110,6 +104,7 @@ namespace KeepCorrect.Translator.WPF
 
         private async void OnHotKeyPressed()
         {
+            MyStackPanel.Children.Clear();
             await ShowTranslate();
         }
 
@@ -175,27 +170,6 @@ namespace KeepCorrect.Translator.WPF
         
         private void ShowTranslateOfText(string text, string translate)
         {
-            var stackPanel = new StackPanel()
-            {
-                Orientation = Orientation.Vertical
-            };
-            
-            
-            var textBox = new TextBox
-            {
-                Padding = new Thickness(10, 10, 10, 10),
-                Background = Brushes.Transparent,
-                BorderThickness = new Thickness(0),
-                TextWrapping = TextWrapping.Wrap,
-                IsReadOnly = true,
-                FontSize = 18,
-                FontWeight = FontWeights.Bold,
-                FontStyle = FontStyles.Normal,
-                Text = text
-            };
-            textBox.MouseMove += TextBox_MouseMove;
-            stackPanel.Children.Add(textBox);
-            
             var translateBox = new TextBox
             {
                 Padding = new Thickness(10, 10, 10, 10),
@@ -203,34 +177,50 @@ namespace KeepCorrect.Translator.WPF
                 BorderThickness = new Thickness(0),
                 TextWrapping = TextWrapping.Wrap,
                 IsReadOnly = true,
-                FontSize = 18,
+                FontSize = 15,
                 FontWeight = FontWeights.Bold,
                 FontStyle = FontStyles.Normal,
                 Text = translate
             };
             translateBox.MouseMove += TextBox_MouseMove;
-            stackPanel.Children.Add(translateBox);
+            MyStackPanel.Children.Add(translateBox);
             
-            myGrid.Children.Add(stackPanel);
+            if (AppSettingsManager.ShowSourceText)
+            {
+                var textBox = new TextBox
+                {
+                    Padding = new Thickness(10, 10, 10, 10),
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    TextWrapping = TextWrapping.Wrap,
+                    IsReadOnly = true,
+                    FontSize = 15,
+                    FontWeight = FontWeights.Normal,
+                    FontStyle = FontStyles.Normal,
+                    Text = text
+                };
+                textBox.MouseMove += TextBox_MouseMove;
+                MyStackPanel.Children.Add(textBox);
+            }
         }
 
         private void TextBox_MouseMove(object sender, MouseEventArgs e)
         {
-            TextBox textBox = sender as TextBox;
-            Point mousePoint = Mouse.GetPosition(textBox);
-            int charPosition = textBox.GetCharacterIndexFromPoint(mousePoint, true);
+            var textBox = sender as TextBox;
+            var mousePoint = Mouse.GetPosition(textBox);
+            var charPosition = textBox.GetCharacterIndexFromPoint(mousePoint, true);
             if (charPosition > 0)
             {
                 textBox.Focus();
-                int index = 0;
-                int i = 0;
-                string[] strings = textBox.Text.Split(' ');
+                var index = 0;
+                var i = 0;
+                var strings = textBox.Text.Split(' ');
                 while (index + strings[i].Length < charPosition && i < strings.Length)
                 {
                     index += strings[i++].Length + 1;
                 }
 
-                textBox.Select(index, strings[i].Length);
+                textBox.Select(index, strings[i].Where(char.IsLetter).Count());
             }
         }
 
@@ -290,6 +280,26 @@ namespace KeepCorrect.Translator.WPF
             /// <summary>Specifies that the Window key is pressed with the associated key.
             /// </summary>
             Win = 0x0008
+        }
+
+        public void OnAutoStart()
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                //Must have this line to prevent the window start locatioon not being in center.
+                WindowState = WindowState.Normal;
+                Hide();
+                //Show your tray icon code below
+            }
+            else
+            {
+                Show();
+            }
+        }
+
+        private void MenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            AppSettingsManager.Set(AppSettingKeyEnum.ShowSourceText, !AppSettingsManager.ShowSourceText);
         }
     }
 }

@@ -5,8 +5,29 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KeepCorrect.Translator.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid x:Name="myGrid">
-        
+        Title="Translator" Height="450" Width="800">
+    <Grid x:Name="MyGrid">
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_New" />
+                    <MenuItem Header="_Open" />
+                    <MenuItem Header="_Save" />
+                    <Separator />
+                    <MenuItem Header="_Exit" />
+                </MenuItem>
+                <MenuItem Header="_View">
+                    <MenuItem Header="_Show source text" IsCheckable="True" IsChecked="True" Click="MenuItem_OnClick" />
+                </MenuItem>
+            </Menu>
+            
+            <ScrollViewer x:Name="MyScrollViewer">
+                <StackPanel 
+                    x:Name="MyStackPanel" 
+                    Orientation="Vertical">
+                
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
     </Grid>
 </Window>
