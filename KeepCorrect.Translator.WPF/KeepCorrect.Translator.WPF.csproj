@@ -5,6 +5,7 @@
         <TargetFramework>net7.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
+        <ApplicationIcon>mate_translate_alt_macos_bigsur_icon_189996.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
