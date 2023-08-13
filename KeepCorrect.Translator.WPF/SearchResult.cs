@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
-namespace KeepCorrect.Translator
+namespace KeepCorrect.Translator.WPF
 {
-    
-    
     public partial class SearchResult
     {
         [JsonProperty("play_word")]

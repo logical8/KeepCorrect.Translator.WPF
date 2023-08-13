@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -128,7 +129,6 @@ namespace KeepCorrect.Translator.WPF
             // access clipboard which now contains selected text in foreground window (active application)
             var text = await Task.Factory.StartNew(getClipBoardValue);
 
-            //TODO: if (it is not text) return;
             if (ItIsText(text))
             {
                 ShowTranslateOfText(text, await GetTranslate(text));
@@ -137,7 +137,7 @@ namespace KeepCorrect.Translator.WPF
             {
                 if (text.Length > 100) return;
                 var result = await Search.GetSearchResult(text);
-                //ShowTranslates();
+                ShowTranslates(result);
             }
 
             if (WindowState == WindowState.Minimized)
@@ -148,7 +148,75 @@ namespace KeepCorrect.Translator.WPF
             //SetDesktopLocation(Cursor.Position.X, Cursor.Position.Y);
             Activate();
         }
+
+        private void ShowTranslates(SearchResult searchResult)
+        {
+            var count = 0;
+            var height = 250;
+            
+            var partsOfSpeech = searchResult.Word.PartsOfSpeech?.GetType()
+                .GetProperties()
+                .Where(p => p.GetValue(searchResult.Word.PartsOfSpeech, null) != null)
+                .Select(p => (Adjective)p.GetValue(searchResult.Word.PartsOfSpeech, null)) ?? new List<Adjective>();
+            foreach (var partOfSpeech in partsOfSpeech)
+            {
+                var translateBox = new TextBox
+                {
+                    Padding = new Thickness(10, 10, 10, 10),
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    TextWrapping = TextWrapping.Wrap,
+                    IsReadOnly = true,
+                    FontSize = 15,
+                    FontWeight = FontWeights.Bold,
+                    FontStyle = FontStyles.Normal,
+                    Text = partOfSpeech.Word
+                };
+                translateBox.MouseMove += TextBox_MouseMove;
+                MyStackPanel.Children.Add(translateBox);
+                
+                var translateRuBox = new TextBox
+                {
+                    Padding = new Thickness(10, 10, 10, 10),
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    TextWrapping = TextWrapping.Wrap,
+                    IsReadOnly = true,
+                    FontSize = 15,
+                    FontWeight = FontWeights.Normal,
+                    FontStyle = FontStyles.Italic,
+                    Text = partOfSpeech.PartOfSpeechRu
+                };
+                MyStackPanel.Children.Add(translateRuBox);
+                
+                var translationsTextBox = GetTranslateTextBox(partOfSpeech.Values.Select(v => v.ValueValue));
+                MyStackPanel.Children.Add(translationsTextBox);
+                
+            }
+        }
         
+        private Control GetTranslateTextBox(IEnumerable<string> translates)
+        {
+            var translateBox = new TextBox
+            {
+                Padding = new Thickness(10, 10, 10, 10),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                TextWrapping = TextWrapping.Wrap,
+                IsReadOnly = true,
+                FontSize = 15,
+                FontWeight = FontWeights.Normal,
+                FontStyle = FontStyles.Normal
+            };
+            foreach (var translate in translates)
+            {
+                translateBox.AppendText($"– {translate}");
+                translateBox.AppendText(Environment.NewLine);
+            }
+
+            return translateBox;
+        }
+
         private async Task<string> GetTranslate(string text)
         {
             try

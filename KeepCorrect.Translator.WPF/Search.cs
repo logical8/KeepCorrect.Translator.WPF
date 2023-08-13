@@ -4,7 +4,7 @@ using Flurl;
 using Flurl.Http;
 using Newtonsoft.Json;
 
-namespace KeepCorrect.Translator
+namespace KeepCorrect.Translator.WPF
 {
     public class Search
     {
