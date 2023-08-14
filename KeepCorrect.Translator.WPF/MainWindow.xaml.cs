@@ -372,5 +372,10 @@ namespace KeepCorrect.Translator.WPF
                 Show();
             }
         }
+
+        private void MenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
     }
 }
