@@ -20,7 +20,7 @@ namespace KeepCorrect.Translator.WPF
             }*/
 
             // Create main application window, starting minimized if specified
-            MainWindow mainWindow = new MainWindow();
+            var mainWindow = new MainWindow();
             //mainWindow.WindowState = WindowState.Minimized;
             mainWindow.OnAutoStart();
         }

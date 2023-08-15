@@ -13,6 +13,8 @@ using System.Windows.Media;
 using Flurl;
 using Flurl.Http;
 using KeepCorrect.Translator.WPF.AppSettings;
+using KeepCorrect.Translator.WPF.Enums;
+using KeepCorrect.Translator.WPF.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -36,24 +38,24 @@ namespace KeepCorrect.Translator.WPF
         }
         
         [DllImport("User32.dll")] 
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        private static extern bool SetForegroundWindow(nint hWnd);
 
         [DllImport("user32.dll", CharSet=CharSet.Auto)]
-        public static extern IntPtr GetForegroundWindow();
+        public static extern nint GetForegroundWindow();
 
         [DllImport("user32.dll")]
         static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
         
         [DllImport("User32.dll")]
         private static extern bool RegisterHotKey(
-            [In] IntPtr hWnd,
+            [In] nint hWnd,
             [In] int id,
             [In] uint fsModifiers,
             [In] uint vk);
 
         [DllImport("User32.dll")]
         private static extern bool UnregisterHotKey(
-            [In] IntPtr hWnd,
+            [In] nint hWnd,
             [In] int id);
 
         private HwndSource _source;
@@ -93,7 +95,7 @@ namespace KeepCorrect.Translator.WPF
             UnregisterHotKey(helper.Handle, HOTKEY_ID);
         }
 
-        private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private nint HwndHook(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
         {
             const int WM_HOTKEY = 0x0312;
             switch(msg)
@@ -108,7 +110,7 @@ namespace KeepCorrect.Translator.WPF
                     }
                     break;
             }
-            return IntPtr.Zero;
+            return nint.Zero;
         }
 
         private async void OnHotKeyPressed()
@@ -127,9 +129,9 @@ namespace KeepCorrect.Translator.WPF
             //await System.Threading.Tasks.Task.Factory.StartNew(fetchSelectionToClipboard);
 
             // access clipboard which now contains selected text in foreground window (active application)
-            var text = await Task.Factory.StartNew(getClipBoardValue);
+            var text = await Task.Factory.StartNew(GetClipBoardValue);
 
-            if (ItIsText(text))
+            if (text.IsText())
             {
                 ShowTranslateOfText(text, await GetTranslate(text));
             }
@@ -239,11 +241,6 @@ namespace KeepCorrect.Translator.WPF
             }
         }
         
-        private static bool ItIsText(string text)
-        {
-            return text.Trim().Any(ch => ch == ' ');
-        }
-        
         private void ShowTranslateOfText(string text, string translate)
         {
             var translateBox = new TextBox
@@ -280,7 +277,7 @@ namespace KeepCorrect.Translator.WPF
             }
         }
 
-        private void TextBox_MouseMove(object sender, MouseEventArgs e)
+        private static void TextBox_MouseMove(object sender, MouseEventArgs e)
         {
             var textBox = sender as TextBox;
             var mousePoint = Mouse.GetPosition(textBox);
@@ -300,7 +297,7 @@ namespace KeepCorrect.Translator.WPF
             }
         }
 
-        public static void SendCtrlC(IntPtr hWnd)
+        private static void SendCtrlC(nint hWnd)
         {
             uint KEYEVENTF_KEYUP = 2;
             byte VK_CONTROL = 0x11;
@@ -313,7 +310,7 @@ namespace KeepCorrect.Translator.WPF
         }
         
         // depends on the type of your app, you sometimes need to access clipboard from a Single Thread Appartment model..therefore I'm creating a new thread here
-        static string getClipBoardValue()
+        private static string GetClipBoardValue()
         {
             var text = "";
             var staThread = new Thread(
@@ -332,30 +329,6 @@ namespace KeepCorrect.Translator.WPF
             staThread.Start();
             staThread.Join();
             return text;
-        }
-
-        [Flags]
-        public enum Modifiers
-        {
-            /// <summary>Specifies that the key should be treated as is, without any modifier.
-            /// </summary>
-            NoModifier = 0x0000,
-
-            /// <summary>Specifies that the Accelerator key (ALT) is pressed with the key.
-            /// </summary>
-            Alt = 0x0001,
-
-            /// <summary>Specifies that the Control key is pressed with the key.
-            /// </summary>
-            Ctrl = 0x0002,
-
-            /// <summary>Specifies that the Shift key is pressed with the associated key.
-            /// </summary>
-            Shift = 0x0004,
-
-            /// <summary>Specifies that the Window key is pressed with the associated key.
-            /// </summary>
-            Win = 0x0008
         }
 
         public void OnAutoStart()
