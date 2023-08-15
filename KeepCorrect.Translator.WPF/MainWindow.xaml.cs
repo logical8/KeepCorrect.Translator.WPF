@@ -156,7 +156,7 @@ namespace KeepCorrect.Translator.WPF
             var count = 0;
             var height = 250;
             
-            var partsOfSpeech = searchResult.Word.PartsOfSpeech?.GetType()
+            var partsOfSpeech = searchResult.Word.PartsOfSpeech.GetType()
                 .GetProperties()
                 .Where(p => p.GetValue(searchResult.Word.PartsOfSpeech, null) != null)
                 .Select(p => (Adjective)p.GetValue(searchResult.Word.PartsOfSpeech, null)) ?? new List<Adjective>();
@@ -174,7 +174,7 @@ namespace KeepCorrect.Translator.WPF
                     FontStyle = FontStyles.Normal,
                     Text = partOfSpeech.Word
                 };
-                translateBox.MouseMove += TextBox_MouseMove;
+                translateBox.PreviewMouseLeftButtonUp += async (s,e) => await TranslateBoxOnMouseLeftButtonUp(s, e);
                 MyStackPanel.Children.Add(translateBox);
                 
                 var translateRuBox = new TextBox
@@ -255,7 +255,7 @@ namespace KeepCorrect.Translator.WPF
                 FontStyle = FontStyles.Normal,
                 Text = translate
             };
-            translateBox.MouseMove += TextBox_MouseMove;
+            
             MyStackPanel.Children.Add(translateBox);
             
             if (AppSettingsManager.ShowSourceText)
@@ -272,9 +272,31 @@ namespace KeepCorrect.Translator.WPF
                     FontStyle = FontStyles.Normal,
                     Text = text
                 };
-                textBox.MouseMove += TextBox_MouseMove;
+                textBox.PreviewMouseLeftButtonUp += async (s,e) => await TranslateBoxOnMouseLeftButtonUp(s, e);
                 MyStackPanel.Children.Add(textBox);
             }
+        }
+
+        private async Task TranslateBoxOnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBox textBox && textBox.SelectedText.IsTextOrWord())
+            {
+                await TryShowBubble(textBox.SelectedText.GetText(), e);
+            }
+        }
+
+        private async Task TryShowBubble(string text, MouseButtonEventArgs mouseButtonEventArgs)
+        {
+            if (text.IsWord())
+            {
+                var searchResult = await Search.GetSearchResult(text);
+                ShowBubble(searchResult.Html, mouseButtonEventArgs);
+            }
+        }
+
+        private void ShowBubble(string html, MouseButtonEventArgs mouseButtonEventArgs)
+        {
+            throw new NotImplementedException();
         }
 
         private static void TextBox_MouseMove(object sender, MouseEventArgs e)
